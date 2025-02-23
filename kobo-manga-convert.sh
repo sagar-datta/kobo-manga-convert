@@ -6,31 +6,25 @@
 # Includes functions for showing status, success, error, and debug messages.
 # =============================================================================
 
-# Terminal UI functions from mangamerge.sh
-spinner_chars=( "⠋" "⠙" "⠹" "⠸" "⠼" "⠴" "⠦" "⠧" "⠇" "⠏" )
-current_message=""
-spinner_index=0
+# Terminal UI functions
+show_header() {
+    printf "\n\033[1;34m=== %s ===\033[0m\n" "$1"
+}
 
-# Function to display spinner with status message
 show_status() {
-    local msg="$1"
-    current_message="$msg"
-    printf "\r\033[K[ \033[1;36m%s\033[0m ] %s" "${spinner_chars[$((spinner_index % 10))]}" "$msg"
-    ((spinner_index++))
+    printf "\033[1;36m→\033[0m %s\n" "$1"
 }
 
 show_success() {
-    printf "\r\033[K\033[1;32m[✓]\033[0m %s\n" "$1"
-    current_message=""
+    printf "\033[1;32m✓\033[0m %s\n" "$1"
 }
 
 show_error() {
-    printf "\r\033[K\033[1;31m[✗]\033[0m %s\n" "$1"
-    current_message=""
+    printf "\033[1;31m✗\033[0m %s\n" "$1"
 }
 
 show_debug() {
-    printf "\r\033[K    \033[1;90m→\033[0m %s\n" "$1"
+    printf "    \033[1;90m→\033[0m %s\n" "$1"
 }
 
 # =============================================================================
@@ -58,9 +52,6 @@ if [ -z "$DEVICE" ] || [ -z "$DEVICE_NAME" ]; then
     show_error "Device configuration is incomplete. DEVICE and DEVICE_NAME must be set."
     exit 1
 fi
-spinner_chars=( "⠋" "⠙" "⠹" "⠸" "⠼" "⠴" "⠦" "⠧" "⠇" "⠏" )
-current_message=""
-spinner_index=0
 
 # =============================================================================
 # Image Analysis Functions
@@ -155,13 +146,8 @@ base_name="${input%.*}"
 # Set output path
 output="${base_name}_${DEVICE}.cbz"
 
+show_header "Device Configuration"
 show_debug "Using device: $DEVICE_NAME ($DEVICE)"
-
-# Validate input
-if [ ! -e "$input" ]; then
-    show_error "Error: Input $input not found"
-    exit 1
-fi
 
 # =============================================================================
 # Spread Detection and Processing
@@ -169,10 +155,11 @@ fi
 # Uses intelligent algorithms to identify and combine facing pages.
 # =============================================================================
 
-# Ask about spread detection
+# Before spread detection
+show_header "Spread Detection"
 echo -n "Do you need double spread detection? (y/N): "
 read spread_detection
-spread_detection=${spread_detection:l} # Convert to lowercase
+spread_detection=${spread_detection:l}
 
 temp_dir=$(mktemp -d)
 working_dir="$temp_dir/working"
@@ -189,7 +176,7 @@ fi
 
 # Modify the spread detection section:
 if [[ "$spread_detection" == "y"* ]]; then
-    show_status "Analyzing pages for spread detection..."
+    show_status "Starting spread detection analysis..."
     
     # Create temporary directory for merged spreads
     merged_dir="$temp_dir/merged"
@@ -233,7 +220,7 @@ if [[ "$spread_detection" == "y"* ]]; then
                 ((start_num--))
             fi
         else
-            show_status "Processing final page - ${current_file}/${total_files}"
+            show_status "Processing final page..."
             cp "$files[$i]" "$merged_dir/${start_num}.jpg"
         fi
     done
@@ -249,8 +236,9 @@ fi
 # Includes cleanup and optional original file management.
 # =============================================================================
 
-# Convert to Kobo format
-show_status "Initializing Kobo format conversion..."
+# Before conversion
+show_header "Kobo Format Conversion"
+show_status "Starting conversion process..."
 show_debug "Device profile: $DEVICE ($DEVICE_NAME)"
 show_debug "Output file: $output"
 show_debug "Processing directory: $working_dir"
@@ -261,8 +249,8 @@ if "$(dirname "$0")/kcc-wrapper.sh" -p "$DEVICE" -f CBZ -m -c 1 --cp 1.0 -u --mo
     # Clean up
     [ -d "$temp_dir" ] && rm -rf "$temp_dir"
     
-    # Ask about moving original to trash
-    echo -n "\nMove original to trash? (y/N): "
+    show_header "Cleanup"
+    echo -n "Move original to trash? (y/N): "
     read move_to_trash
     
     if [[ "${move_to_trash:l}" == "y"* ]]; then

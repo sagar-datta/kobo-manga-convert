@@ -323,14 +323,12 @@ fi
 # =============================================================================
 
 # Before conversion
-show_header "Kobo Format Conversion"
-show_status "Starting conversion process..."
-show_debug "Device profile: $DEVICE ($DEVICE_NAME)"
-show_debug "Output file: $output"
-show_debug "Processing directory: $working_dir"
+show_header ""$DEVICE_NAME" Format Conversion"
+show_persistent_status "Converting to "$DEVICE_NAME" format..."
 
-if "$(dirname "$0")/kcc-wrapper.sh" -p "$DEVICE" -f CBZ -m -c 1 --cp 1.0 -u --mozjpeg --splitter 2 -o "$output" "$working_dir"; then
-    show_success "Successfully converted to Kobo format: $output"
+if "$(dirname "$0")/kcc-wrapper.sh" -p "$DEVICE" -f CBZ -m -c 1 --cp 1.0 -u --mozjpeg --splitter 2 -o "$output" "$working_dir" > /dev/null 2>&1; then
+    show_phase_complete "Converted to "$DEVICE_NAME" format"
+    show_success "Output saved as: $(basename "$output")"
     
     # Clean up
     [ -d "$temp_dir" ] && rm -rf "$temp_dir"
@@ -340,19 +338,19 @@ if "$(dirname "$0")/kcc-wrapper.sh" -p "$DEVICE" -f CBZ -m -c 1 --cp 1.0 -u --mo
     read move_to_trash
     
     if [[ "${move_to_trash:l}" == "y"* ]]; then
-        show_status "Moving original file to trash..."
+        show_persistent_status "Moving original file to trash..."
         trash_dir=$(get_trash_dir)
         if [ -d "$trash_dir" ]; then
             mv "$input" "$trash_dir/"
-            show_success "Original file moved to trash"
+            show_phase_complete "Original file moved to trash"
         else
             show_error "Failed to move to trash: trash directory not found"
-            show_debug "Original file was not moved"
         fi
     fi
 else
-    show_error "Conversion failed for $input"
+    show_error "Conversion failed"
     [ -d "$temp_dir" ] && rm -rf "$temp_dir"
+    exit 1
 fi
 
 show_success "All operations completed successfully!"

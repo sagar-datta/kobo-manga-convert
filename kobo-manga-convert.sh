@@ -183,9 +183,25 @@ if "$(dirname "$0")/kcc-wrapper.sh" -p KoL -f CBZ -m -c 1 --cp 1.0 -u --mozjpeg 
     # Ask about moving original to trash
     echo -n "Move original to trash? (y/N): "
     read move_to_trash
+    # Add this function near the top with other utility functions
+    get_trash_dir() {
+        case "$(uname)" in
+            "Darwin") echo "$HOME/.Trash" ;;  # macOS
+            "Linux")  echo "$HOME/.local/share/Trash/files" ;;  # Linux
+            *) echo "$HOME/.Trash" ;;  # Default fallback
+        esac
+    }
+    
+    # Replace the trash section
     if [[ "${move_to_trash:l}" == "y"* ]]; then
-        mv "$input" ~/.Trash/
-        show_success "Moved to trash: $input"
+        trash_dir=$(get_trash_dir)
+        if [ -d "$trash_dir" ]; then
+            mv "$input" "$trash_dir/"
+            show_success "Moved to trash: $input"
+        else
+            show_error "Trash directory not found: $trash_dir"
+            show_debug "File was not moved"
+        fi
     fi
 else
     show_error "Error during conversion of $input"

@@ -11,20 +11,64 @@ show_header() {
     printf "\n\033[1;34m=== %s ===\033[0m\n" "$1"
 }
 
+# Retro spinner characters
+spinner=( "⣾" "⣽" "⣻" "⢿" "⡿" "⣟" "⣯" "⣷" )
+
+# Function to clear the last line
+clear_line() {
+    printf "\r\033[K"
+}
+
+# Function to show progress with spinner
+show_progress() {
+    local frame=$1
+    local current=$2
+    local total=$3
+    local msg=$4
+    local is_complete=$5
+    printf "\r\033[K"  # Clear the current line
+    if [ "$is_complete" = true ]; then
+        printf "\n✓ Processing spreads: %d/%d %s\n" "$current" "$total" "$msg"
+    else
+        printf "\033[36m%s\033[0m Processing spreads: %d/%d %s" "${spinner[$frame]}" "$current" "$total" "$msg"
+    fi
+}
+
+# Function to show merge status below progress
+show_merge() {
+    printf "\n    \033[1;90m→\033[0m Merging pages %s and %s" "$1" "$2"
+    printf "\033[1A"  # Move cursor up one line
+}
+
 show_status() {
+    clear_line
     printf "\033[1;36m→\033[0m %s\n" "$1"
 }
 
 show_success() {
+    clear_line
     printf "\033[1;32m✓\033[0m %s\n" "$1"
 }
 
 show_error() {
+    clear_line
     printf "\033[1;31m✗\033[0m %s\n" "$1"
 }
 
 show_debug() {
     printf "    \033[1;90m→\033[0m %s\n" "$1"
+}
+
+# Add new function for persistent status that gets replaced
+show_persistent_status() {
+    local msg="$1"
+    printf "\r\033[K\033[1;36m→\033[0m %s" "$msg"
+}
+
+# Add function to clear persistent status and show success
+show_phase_complete() {
+    local msg="$1"
+    printf "\r\033[K✓ %s\n" "$msg"
 }
 
 # =============================================================================
@@ -165,33 +209,45 @@ temp_dir=$(mktemp -d)
 working_dir="$temp_dir/working"
 mkdir -p "$working_dir"
 
-# Extract/copy files to working directory
-if [[ "$input" =~ \.(cbz|zip)$ ]]; then
-    show_status "Preparing workspace - Extracting archive..."
-    unzip -q "$input" -d "$working_dir"
-else
-    show_status "Preparing workspace - Copying directory contents..."
-    cp -r "$input"/* "$working_dir"
-fi
+# Function to show final spread detection result
+show_spread_result() {
+    local merged=$1
+    local skipped=$2
+    local success=$3
+    printf "\r\033[K"  # Clear current line
+    if [ "$success" = true ]; then
+        printf "\033[1;32m✓\033[0m Process complete: %d double spreads merged, %d blank pages skipped\n" "$merged" "$skipped"
+    else
+        printf "\033[1;31m✗\033[0m Process failed: %d double spreads merged, %d blank pages skipped\n" "$merged" "$skipped"
+    fi
+}
 
-# Modify the spread detection section:
+# Update the spread detection section:
 if [[ "$spread_detection" == "y"* ]]; then
-    show_status "Starting spread detection analysis..."
+    show_persistent_status "Preparing workspace..."
     
     # Create temporary directory for merged spreads
     merged_dir="$temp_dir/merged"
     mkdir -p "$merged_dir"
+    
+    # Extract/copy files to working directory
+    if [[ "$input" =~ \.(cbz|zip)$ ]]; then
+        unzip -q "$input" -d "$working_dir"
+    else
+        cp -r "$input"/* "$working_dir"
+    fi
     
     # Move to working directory
     cd "$working_dir"
     
     # Find and sort all image files
     files=()
+    skipped_pages=0
     while IFS= read -r -d '' file; do
         file="${file#./}"
         # Skip white pages
         if is_white_page "$file"; then
-            show_debug "Detected and skipping blank page: $file"
+            ((skipped_pages++))
             continue
         fi
         files+=("$file")
@@ -205,26 +261,35 @@ if [[ "$spread_detection" == "y"* ]]; then
     total_files=${#files[@]}
     current_file=0
     start_num=99
+    spinner_idx=0
+    merged_count=0
+    
     for ((i=1; i<=${#files[@]}; i+=2)); do
         ((current_file+=2))
         if [ $i -lt ${#files[@]} ]; then
-            show_status "Processing spreads - ${current_file}/${total_files} pages analyzed"
+            show_progress "$((spinner_idx % 8))" "$current_file" "$total_files" "" false
+            ((spinner_idx++))
+            
             if should_merge "$files[$i]" "$files[$((i+1))]"; then
-                show_debug "Merging pages ${files[$i]} and ${files[$((i+1))]}"
                 magick "$files[$i]" "$files[$((i+1))]" +append "$merged_dir/${start_num}.jpg"
                 ((start_num--))
+                ((merged_count++))
             else
                 cp "$files[$i]" "$merged_dir/${start_num}.jpg"
                 ((start_num--))
                 cp "$files[$((i+1))]" "$merged_dir/${start_num}.jpg"
                 ((start_num--))
             fi
+            sleep 0.1 # Small delay for spinner animation
         else
-            show_status "Processing final page..."
+            show_progress "$((spinner_idx % 8))" "$total_files" "$total_files" "" true
             cp "$files[$i]" "$merged_dir/${start_num}.jpg"
         fi
     done
-    show_success "Spread detection and processing complete"
+    
+    # Clear all previous output and show final result
+    printf "\033[2K"  # Clear the entire line
+    show_spread_result "$merged_count" "$skipped_pages" true
     
     # Set working directory to merged directory for conversion
     working_dir="$merged_dir"

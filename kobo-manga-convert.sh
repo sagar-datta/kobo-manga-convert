@@ -1,5 +1,11 @@
 #!/bin/zsh
 
+# =============================================================================
+# Terminal UI Components
+# Provides a clean, interactive CLI experience with spinners and status updates.
+# Includes functions for showing status, success, error, and debug messages.
+# =============================================================================
+
 # Terminal UI functions from mangamerge.sh
 spinner_chars=( "⠋" "⠙" "⠹" "⠸" "⠼" "⠴" "⠦" "⠧" "⠇" "⠏" )
 current_message=""
@@ -27,6 +33,12 @@ show_debug() {
     printf "\r\033[K    \033[1;90m→\033[0m %s\n" "$1"
 }
 
+# =============================================================================
+# Device Configuration Validation
+# Ensures proper device settings are loaded from device-config.sh.
+# Validates single device configuration and required parameters.
+# =============================================================================
+
 # Source device configuration
 if [ ! -f "$(dirname "$0")/device-config.sh" ]; then
     show_error "Device configuration not found at $(dirname "$0")/device-config.sh"
@@ -49,6 +61,12 @@ fi
 spinner_chars=( "⠋" "⠙" "⠹" "⠸" "⠼" "⠴" "⠦" "⠧" "⠇" "⠏" )
 current_message=""
 spinner_index=0
+
+# =============================================================================
+# Image Analysis Functions
+# Smart detection of double-page spreads and blank pages.
+# Uses edge detection and brightness analysis to determine merge candidates.
+# =============================================================================
 
 # Function to check if images should be merged
 should_merge() {
@@ -92,6 +110,12 @@ is_white_page() {
     (( $(echo "$mean > 65000" | bc -l) )) && (( $(echo "$stddev < 500" | bc -l) ))
 }
 
+# =============================================================================
+# Dependency Validation
+# Checks for required system tools (ImageMagick, unzip) and script dependencies.
+# Ensures all necessary components are available before processing.
+# =============================================================================
+
 # Check dependencies
 if ! command -v magick &> /dev/null || ! command -v unzip &> /dev/null; then
     show_error "Required: ImageMagick and unzip. Please install missing dependencies."
@@ -103,6 +127,12 @@ if [ ! -f "$(dirname "$0")/kcc-wrapper.sh" ]; then
     show_error "KCC wrapper not found at $(dirname "$0")/kcc-wrapper.sh"
     exit 1
 fi
+
+# =============================================================================
+# Input Processing and Workspace Setup
+# Handles input validation, path resolution, and temporary workspace creation.
+# Supports both archive (.cbz/.zip) and directory inputs.
+# =============================================================================
 
 # Check if arguments are provided
 if [ $# -eq 0 ]; then
@@ -132,6 +162,12 @@ if [ ! -e "$input" ]; then
     show_error "Error: Input $input not found"
     exit 1
 fi
+
+# =============================================================================
+# Spread Detection and Processing
+# Optional double-page spread detection and merging.
+# Uses intelligent algorithms to identify and combine facing pages.
+# =============================================================================
 
 # Ask about spread detection
 echo -n "Do you need double spread detection? (y/N): "
@@ -206,6 +242,12 @@ if [[ "$spread_detection" == "y"* ]]; then
     # Set working directory to merged directory for conversion
     working_dir="$merged_dir"
 fi
+
+# =============================================================================
+# Kobo Format Conversion
+# Final conversion to Kobo-optimized format using kcc-wrapper.
+# Includes cleanup and optional original file management.
+# =============================================================================
 
 # Convert to Kobo format
 show_status "Initializing Kobo format conversion..."

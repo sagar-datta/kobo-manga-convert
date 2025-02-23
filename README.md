@@ -1,79 +1,69 @@
-# Kobo Manga Convert
+# Kobo Manga Convert 📚
 
-A script to convert manga files (CBZ/ZIP/directory) into a format optimized for Kobo e-readers. Features include:
+A smart manga conversion script optimised for e-readers that automatically detects and merges double-page spreads while removing blank pages. Currently only tested with zsh on macOS.
 
-- Double-spread page detection and merging
-- White page removal
-- Kobo-optimized output format
-- Support for both macOS and Linux
+## Features ✨
 
-## Prerequisites
+- Automatic double-page spread detection and merging
+- Blank page detection and removal
+- Interactive terminal UI with progress indicators
+- Support for CBZ/ZIP archives or directories as input
+- Optimised output for various e-reader devices
+- Optional original file cleanup
 
-1. **Zsh Shell**
+## Prerequisites ⚙️
 
-   - Pre-installed on macOS
-   - Linux: `sudo apt-get install zsh` (Ubuntu/Debian)
+1. Install ImageMagick:
 
-2. **ImageMagick**
+- For installation instructions, visit the [ImageMagick GitHub repository](https://github.com/ImageMagick/ImageMagick).
 
-   - macOS: `brew install imagemagick`
-   - Linux: `sudo apt-get install imagemagick` (Ubuntu/Debian)
+```bash
+brew install imagemagick
+```
 
-3. **Unzip**
+2. Install KCC (Kindle Comic Converter):
 
-   - macOS: Pre-installed
-   - Linux: `sudo apt-get install unzip` (Ubuntu/Debian)
+- For installation instructions, visit the [KCC GitHub repository](https://github.com/ciromattia/kcc).
 
-4. **Kindle Comic Converter (KCC)**
-   - Install using pip: `pip install KindleComicConverter`
-   - Or follow installation instructions at [KCC GitHub](https://github.com/ciromattia/kcc)
+## Device Configuration 📱
 
-## Installation
+1. Edit `device-config.sh` and uncomment the line for your device. For example, for Kobo Libra:
 
-1. Clone this repository:
+```bash
+export DEVICE="KoL" DEVICE_NAME="Kobo Libra H2O/Kobo Libra 2"
+```
 
-   ```bash
-   git clone [repository-url] ~/.scripts/kobo-manga-convert
-   ```
+Only one device should be uncommented at a time.
 
-2. Make the script executable:
+## Usage 🚀
 
-   ```bash
-   chmod +x ~/.scripts/kobo-manga-convert/kobo-manga-convert.sh
-   ```
+```bash
+./kobo-manga-convert.sh <input.cbz/input.zip/directory>
+```
 
-3. Add an alias to your shell configuration:
+The script will:
 
-   For Zsh (add to ~/.zshrc):
+1. Ask if you want to enable double-page spread detection
+2. Process the input, detecting and merging spreads if enabled
+3. Remove any blank pages
+4. Convert to your device's optimal format
+5. Optionally move the original file to trash
 
-   ```bash
-   echo 'alias manga-convert="~/.scripts/kobo-manga-convert/kobo-manga-convert.sh"' >> ~/.zshrc
-   source ~/.zshrc
-   ```
+Output will be saved as `<input>_<device>.cbz` in the same directory as the input.
 
-## Usage
+## KCC Wrapper 🛠️
 
-1. Basic usage:
+The `kcc-wrapper` is a script that simplifies the usage of the Kindle Comic Converter (KCC). It acts as a convenient interface, allowing users to easily convert comic files into formats compatible with Kindle devices without needing to manually invoke KCC commands.
 
-   ```bash
-   manga-convert <input-file>
-   ```
+### How It Works:
 
-   Replace `<input-file>` with your manga file (CBZ/ZIP) or directory path.
+- **Input Handling**: The wrapper accepts various input formats, including CBZ and ZIP files, as well as directories containing images.
+- **Configuration**: It reads the device configuration from `device-config.sh`, ensuring that the output is optimised for the selected Kindle device.
+- **Conversion Process**: The wrapper automates the process of calling KCC with the appropriate parameters, handling any necessary pre-processing, such as merging double-page spreads and removing blank pages.
+- **Output Management**: After conversion, the wrapper saves the output file in the same directory as the input, appending the device name to the filename for easy identification.
 
-2. Example usage:
+This makes it easier for users to convert their comic files with minimal setup and configuration.
 
-   ```bash
-   manga-convert "~/Downloads/manga-chapter.cbz"
-   # or
-   manga-convert "~/Downloads/manga-folder"
-   ```
+## Supported Devices 📖
 
-3. Interactive prompts:
-
-   - The script will ask if you want to enable double spread detection
-   - After conversion, it will ask if you want to move the original file to trash
-
-4. Output:
-   - Converted files are saved in the same directory as the input
-   - Output filename format: `<original-name>_Kobo.cbz`
+The script supports various Kindle, Kobo, and reMarkable devices. Check `device-config.sh` for the full list of supported devices.

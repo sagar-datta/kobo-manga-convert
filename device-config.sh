@@ -1,30 +1,32 @@
-# K1: Kindle 1
-# K11: Kindle 11
-# K2: Kindle 2
-# K34: Kindle Keyboard/Touch
-# K578: Kindle
-# KDX: Kindle DX/DXG
-# KPW: Kindle Paperwhite 1/2
-# KV: Kindle Paperwhite 3/4/Voyage/Oasis
-# KPW5: Kindle Paperwhite 5/Signature Edition
-# KO: Kindle Oasis 2/3/Paperwhite 12/Colorsoft 12
-# KS: Kindle Scribe
-# KoMT: Kobo Mini/Touch
-# KoG: Kobo Glo
-# KoGHD: Kobo Glo HD
-# KoA: Kobo Aura
-# KoAHD: Kobo Aura HD
-# KoAH2O: Kobo Aura H2O
-# KoAO: Kobo Aura ONE
-# KoN: Kobo Nia
-# KoC: Kobo Clara HD/Kobo Clara 2E
-# KoCC: Kobo Clara Colour
-KoL: Kobo Libra H2O/Kobo Libra 2
-# KoLC: Kobo Libra Colour
-# KoF: Kobo Forma
-# KoS: Kobo Sage
-# KoE: Kobo Elipsa
-# Rmk1: reMarkable 1
-# Rmk2: reMarkable 2
-# RmkPP: reMarkable Paper Pro
-# OTHER: Other
+# Uncomment the line for your device
+
+#export DEVICE="K1" DEVICE_NAME="Kindle 1"
+#export DEVICE="K11" DEVICE_NAME="Kindle 11"
+#export DEVICE="K2" DEVICE_NAME="Kindle 2"
+#export DEVICE="K34" DEVICE_NAME="Kindle Keyboard/Touch"
+#export DEVICE="K578" DEVICE_NAME="Kindle"
+#export DEVICE="KDX" DEVICE_NAME="Kindle DX/DXG"
+#export DEVICE="KPW" DEVICE_NAME="Kindle Paperwhite 1/2"
+#export DEVICE="KV" DEVICE_NAME="Kindle Paperwhite 3/4/Voyage/Oasis"
+#export DEVICE="KPW5" DEVICE_NAME="Kindle Paperwhite 5/Signature Edition"
+#export DEVICE="KO" DEVICE_NAME="Kindle Oasis 2/3/Paperwhite 12/Colorsoft 12"
+#export DEVICE="KS" DEVICE_NAME="Kindle Scribe"
+#export DEVICE="KoMT" DEVICE_NAME="Kobo Mini/Touch"
+#export DEVICE="KoG" DEVICE_NAME="Kobo Glo"
+#export DEVICE="KoGHD" DEVICE_NAME="Kobo Glo HD"
+#export DEVICE="KoA" DEVICE_NAME="Kobo Aura"
+#export DEVICE="KoAHD" DEVICE_NAME="Kobo Aura HD"
+#export DEVICE="KoAH2O" DEVICE_NAME="Kobo Aura H2O"
+#export DEVICE="KoAO" DEVICE_NAME="Kobo Aura ONE"
+#export DEVICE="KoN" DEVICE_NAME="Kobo Nia"
+#export DEVICE="KoC" DEVICE_NAME="Kobo Clara HD/Kobo Clara 2E"
+#export DEVICE="KoCC" DEVICE_NAME="Kobo Clara Colour"
+export DEVICE="KoL" DEVICE_NAME="Kobo Libra H2O/Kobo Libra 2"
+#export DEVICE="KoLC" DEVICE_NAME="Kobo Libra Colour"
+#export DEVICE="KoF" DEVICE_NAME="Kobo Forma"
+#export DEVICE="KoS" DEVICE_NAME="Kobo Sage"
+#export DEVICE="KoE" DEVICE_NAME="Kobo Elipsa"
+#export DEVICE="Rmk1" DEVICE_NAME="reMarkable 1"
+#export DEVICE="Rmk2" DEVICE_NAME="reMarkable 2"
+#export DEVICE="RmkPP" DEVICE_NAME="reMarkable Paper Pro"
+#export DEVICE="OTHER" DEVICE_NAME="Other"

@@ -169,12 +169,40 @@ if [[ "$spread_detection" == "y"* ]]; then
     working_dir="$merged_dir"
 fi
 
+# Get device code from config at script start
+config_file="$(dirname "$0")/device-config.sh"
+if [ ! -f "$config_file" ]; then
+    show_error "Device configuration file not found: $config_file"
+    show_debug "Please ensure device-config.sh exists and uncomment the line for your device."
+    exit 1
+fi
+
+# Count uncommented lines that are not empty
+uncommented_count=$(grep -v '^#' "$config_file" | grep -v '^$' | wc -l)
+
+if [ "$uncommented_count" -eq 0 ]; then
+    show_error "No device configuration found in device-config.sh"
+    show_debug "Please uncomment the line for your device in device-config.sh"
+    exit 1
+elif [ "$uncommented_count" -gt 1 ]; then
+    show_error "Multiple device codes are uncommented in device-config.sh"
+    show_debug "Please uncomment only one device at a time"
+    exit 1
+fi
+
+# Set the DEVICE variable for use throughout the script
+DEVICE=$(grep -v '^#' "$config_file" | grep -v '^$' | cut -d':' -f1)
+
 # Create output filename
-output="${base_name}_Kobo.cbz"
+output="${base_name}_${DEVICE}.cbz"
 
 # Convert to Kobo format
 show_status "Converting to Kobo format..."
-if "$(dirname "$0")/kcc-wrapper.sh" -p KoL -f CBZ -m -c 1 --cp 1.0 -u --mozjpeg --splitter 2 -o "$output" "$working_dir"; then
+show_debug "Using device profile: $DEVICE"
+show_debug "Output will be saved as: $output"
+show_debug "Working directory: $working_dir"
+
+if "$(dirname "$0")/kcc-wrapper.sh" -p "$DEVICE" -f CBZ -m -c 1 --cp 1.0 -u --mozjpeg --splitter 2 -o "$output" "$working_dir"; then
     show_success "Conversion complete! Output saved as $output"
     
     # Clean up

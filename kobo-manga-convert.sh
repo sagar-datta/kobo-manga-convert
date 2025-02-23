@@ -50,28 +50,6 @@ spinner_chars=( "⠋" "⠙" "⠹" "⠸" "⠼" "⠴" "⠦" "⠧" "⠇" "⠏" )
 current_message=""
 spinner_index=0
 
-# Function to display spinner with status message
-show_status() {
-    local msg="$1"
-    current_message="$msg"
-    printf "\r\033[K[ \033[1;36m%s\033[0m ] %s" "${spinner_chars[$((spinner_index % 10))]}" "$msg"
-    ((spinner_index++))
-}
-
-show_success() {
-    printf "\r\033[K\033[1;32m[✓]\033[0m %s\n" "$1"
-    current_message=""
-}
-
-show_error() {
-    printf "\r\033[K\033[1;31m[✗]\033[0m %s\n" "$1"
-    current_message=""
-}
-
-show_debug() {
-    printf "\r\033[K    \033[1;90m→\033[0m %s\n" "$1"
-}
-
 # Function to check if images should be merged
 should_merge() {
     local left_image="$1"

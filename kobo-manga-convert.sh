@@ -204,7 +204,7 @@ output="${base_name}_${DEVICE}.cbz"
 # =============================================================================
 
 # Before spread detection
-show_header "Spread Detection"
+show_header "Spread Detection & Blank Page Removal"
 echo -n "Do you need double spread detection? (y/N): "
 read spread_detection
 spread_detection=${spread_detection:l}
@@ -235,30 +235,30 @@ else
     cp -r "$input"/* "$working_dir"
 fi
 
+# Move to working directory for processing
+cd "$working_dir"
+
+# Find and sort all image files, removing white pages for both paths
+files=()
+skipped_pages=0
+while IFS= read -r -d '' file; do
+    file="${file#./}"
+    # Skip white pages
+    if is_white_page "$file"; then
+        ((skipped_pages++))
+        continue
+    fi
+    files+=("$file")
+done < <(find . -type f \( -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" -o -iname "*.webp" \) -print0)
+
+if [ ${#files[@]} -gt 0 ]; then
+    files=("${(@On)files[@]}")
+fi
+
 if [[ "$spread_detection" == "y"* ]]; then
     # Create temporary directory for merged spreads
     merged_dir="$temp_dir/merged"
     mkdir -p "$merged_dir"
-    
-    # Move to working directory before processing files
-    cd "$working_dir"
-    
-    # Find and sort all image files
-    files=()
-    skipped_pages=0
-    while IFS= read -r -d '' file; do
-        file="${file#./}"
-        # Skip white pages
-        if is_white_page "$file"; then
-            ((skipped_pages++))
-            continue
-        fi
-        files+=("$file")
-    done < <(find . -type f \( -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" -o -iname "*.webp" \) -print0)
-    
-    if [ ${#files[@]} -gt 0 ]; then
-        files=("${(@On)files[@]}")
-    fi
     
     # Process spreads
     total_files=${#files[@]}
@@ -297,9 +297,23 @@ if [[ "$spread_detection" == "y"* ]]; then
     # Set working directory to merged directory for conversion
     working_dir="$merged_dir"
 else
-    # If no spread detection, just show completion
+    # If no spread detection, create clean directory without white pages
+    clean_dir="$temp_dir/clean"
+    mkdir -p "$clean_dir"
+    
+    # Copy non-white pages to clean directory
+    start_num=99
+    for file in "${files[@]}"; do
+        cp "$file" "$clean_dir/${start_num}.jpg"
+        ((start_num--))
+    done
+    
+    # Show completion and white page stats
     printf "\r\033[K"  # Clear the status line
-    show_success "Files prepared for conversion"
+    show_success "Process complete: ${skipped_pages} blank pages removed"
+    
+    # Set working directory to clean directory for conversion
+    working_dir="$clean_dir"
 fi
 
 # =============================================================================

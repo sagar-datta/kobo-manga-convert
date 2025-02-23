@@ -79,6 +79,7 @@ show_phase_complete() {
 
 # Source device configuration
 if [ ! -f "$(dirname "$0")/device-config.sh" ]; then
+    show_header "Device Configuration"
     show_error "Device configuration not found at $(dirname "$0")/device-config.sh"
     exit 1
 fi
@@ -86,16 +87,22 @@ fi
 # Check for multiple device configurations
 device_count=$(grep -c '^export DEVICE=' "$(dirname "$0")/device-config.sh")
 if [ "$device_count" -gt 1 ]; then
-    show_error "Multiple device configurations detected in device-config.sh. Please uncomment only one device configuration."
+    show_header "Device Configuration"
+    show_error "Multiple device configurations detected in device-config.sh"
     exit 1
 fi
 
 source "$(dirname "$0")/device-config.sh"
 
 if [ -z "$DEVICE" ] || [ -z "$DEVICE_NAME" ]; then
-    show_error "Device configuration is incomplete. DEVICE and DEVICE_NAME must be set."
+    show_header "Device Configuration"
+    show_error "Device configuration is incomplete. DEVICE and DEVICE_NAME must be set"
     exit 1
 fi
+
+# Show device configuration status
+show_header "Device Configuration"
+show_success "Using device: $DEVICE_NAME ($DEVICE)"
 
 # =============================================================================
 # Image Analysis Functions
@@ -190,9 +197,6 @@ base_name="${input%.*}"
 # Set output path
 output="${base_name}_${DEVICE}.cbz"
 
-show_header "Device Configuration"
-show_debug "Using device: $DEVICE_NAME ($DEVICE)"
-
 # =============================================================================
 # Spread Detection and Processing
 # Optional double-page spread detection and merging.
@@ -222,22 +226,21 @@ show_spread_result() {
     fi
 }
 
-# Update the spread detection section:
+# Extract/copy files to working directory first, regardless of spread detection
+if [[ "$input" =~ \.(cbz|zip)$ ]]; then
+    show_persistent_status "Extracting archive..."
+    unzip -q "$input" -d "$working_dir"
+else
+    show_persistent_status "Copying files..."
+    cp -r "$input"/* "$working_dir"
+fi
+
 if [[ "$spread_detection" == "y"* ]]; then
-    show_persistent_status "Preparing workspace..."
-    
     # Create temporary directory for merged spreads
     merged_dir="$temp_dir/merged"
     mkdir -p "$merged_dir"
     
-    # Extract/copy files to working directory
-    if [[ "$input" =~ \.(cbz|zip)$ ]]; then
-        unzip -q "$input" -d "$working_dir"
-    else
-        cp -r "$input"/* "$working_dir"
-    fi
-    
-    # Move to working directory
+    # Move to working directory before processing files
     cd "$working_dir"
     
     # Find and sort all image files
@@ -293,6 +296,10 @@ if [[ "$spread_detection" == "y"* ]]; then
     
     # Set working directory to merged directory for conversion
     working_dir="$merged_dir"
+else
+    # If no spread detection, just show completion
+    printf "\r\033[K"  # Clear the status line
+    show_success "Files prepared for conversion"
 fi
 
 # =============================================================================

@@ -1,8 +1,42 @@
 #!/bin/zsh
 
+# Terminal UI functions from mangamerge.sh
+spinner_chars=( "⠋" "⠙" "⠹" "⠸" "⠼" "⠴" "⠦" "⠧" "⠇" "⠏" )
+current_message=""
+spinner_index=0
+
+# Function to display spinner with status message
+show_status() {
+    local msg="$1"
+    current_message="$msg"
+    printf "\r\033[K[ \033[1;36m%s\033[0m ] %s" "${spinner_chars[$((spinner_index % 10))]}" "$msg"
+    ((spinner_index++))
+}
+
+show_success() {
+    printf "\r\033[K\033[1;32m[✓]\033[0m %s\n" "$1"
+    current_message=""
+}
+
+show_error() {
+    printf "\r\033[K\033[1;31m[✗]\033[0m %s\n" "$1"
+    current_message=""
+}
+
+show_debug() {
+    printf "\r\033[K    \033[1;90m→\033[0m %s\n" "$1"
+}
+
 # Source device configuration
 if [ ! -f "$(dirname "$0")/device-config.sh" ]; then
     show_error "Device configuration not found at $(dirname "$0")/device-config.sh"
+    exit 1
+fi
+
+# Check for multiple device configurations
+device_count=$(grep -c '^export DEVICE=' "$(dirname "$0")/device-config.sh")
+if [ "$device_count" -gt 1 ]; then
+    show_error "Multiple device configurations detected in device-config.sh. Please uncomment only one device configuration."
     exit 1
 fi
 
@@ -12,8 +46,6 @@ if [ -z "$DEVICE" ] || [ -z "$DEVICE_NAME" ]; then
     show_error "Device configuration is incomplete. DEVICE and DEVICE_NAME must be set."
     exit 1
 fi
-
-# Terminal UI functions from mangamerge.sh
 spinner_chars=( "⠋" "⠙" "⠹" "⠸" "⠼" "⠴" "⠦" "⠧" "⠇" "⠏" )
 current_message=""
 spinner_index=0

@@ -67,3 +67,7 @@ This makes it easier for users to convert their comic files with minimal setup a
 ## Supported Devices 📖
 
 The script supports various Kindle, Kobo, and reMarkable devices. Check `device-config.sh` for the full list of supported devices.
+
+## License 📄
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
